@@ -1,0 +1,6 @@
+---
+- name: Harden All Ubuntu Workstations
+  hosts: workstations
+  become: true
+  roles:
+    - ubuntu_hardening

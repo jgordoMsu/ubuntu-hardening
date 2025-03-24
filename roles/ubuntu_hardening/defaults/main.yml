@@ -1,0 +1,6 @@
+---
+ubuntu_hardening_ufw_allowed_ports:
+  - ssh
+ubuntu_hardening_fail2ban_maxretry: 5
+ubuntu_hardening_password_min_length: 12
+ubuntu_hardening_password_difok: 4

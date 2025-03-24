@@ -1,0 +1,96 @@
+---
+- name: Update and Upgrade APT Packages
+  ansible.builtin.apt:
+    update_cache: true
+    upgrade: dist
+
+- name: Install Security Tools
+  ansible.builtin.apt:
+    name:
+      - ufw
+      - fail2ban
+      - auditd
+      - unattended-upgrades
+      - lynis
+      - apparmor
+      - apparmor-utils
+    state: present
+
+- name: Enable AppArmor Service
+  ansible.builtin.systemd:
+    name: apparmor
+    enabled: true
+    state: started
+
+- name: Enable UFW and Allow SSH
+  community.general.ufw:
+    rule: allow
+    name: OpenSSH
+
+- name: Enable UFW Firewall
+  community.general.ufw:
+    state: enabled
+
+- name: Configure Fail2Ban for SSH
+  ansible.builtin.copy:
+    dest: /etc/fail2ban/jail.local
+    content: |
+      [sshd]
+      enabled = true
+      port = ssh
+      logpath = /var/log/auth.log
+      maxretry = 5
+    mode: '0644'
+
+- name: Restart Fail2Ban
+  ansible.builtin.service:
+    name: fail2ban
+    state: restarted
+    enabled: true
+
+- name: Enable Automatic Security Updates
+  ansible.builtin.lineinfile:
+    path: /etc/apt/apt.conf.d/20auto-upgrades
+    line: '{{ item }}'
+    create: true
+    mode: '0644'
+  loop:
+    - 'APT::Periodic::Update-Package-Lists "1";'
+    - 'APT::Periodic::Unattended-Upgrade "1";'
+
+- name: Enforce Strong Password Policy
+  ansible.builtin.lineinfile:
+    path: /etc/pam.d/common-password
+    regexp: '^password\s+requisite\s+pam_pwquality\.so'
+    line: 'password requisite pam_pwquality.so retry=3 minlen=12 difok=4'
+
+- name: Disable Root SSH Login
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^PermitRootLogin'
+    line: 'PermitRootLogin no'
+
+- name: Restart SSH Service
+  ansible.builtin.service:
+    name: ssh
+    state: restarted
+
+- name: Run Lynis Vulnerability Audit
+  ansible.builtin.shell: lynis audit system --quiet
+  register: lynis_output
+  changed_when: false
+
+- name: Display Lynis Audit Summary
+  ansible.builtin.debug:
+    var: lynis_output.stdout_lines
+
+- name: Show Network Interfaces and IPs
+  ansible.builtin.shell: |
+    set -o pipefail
+    ip -4 -o addr show | awk '{print $2, $4}'
+  register: network_info
+  changed_when: false
+
+- name: Display Network Info
+  ansible.builtin.debug:
+    var: network_info.stdout_lines
