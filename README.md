@@ -79,10 +79,5 @@ Check the **Actions tab** in your repo for results.
 
 ---
 
-## 🧱 Extend the Role
-Optional hardening add-ons:
-- Disable USB ports
-- Add login banners
-- Harden cron jobs and scheduled tasks
-- Configure custom auditd rules
+
 
