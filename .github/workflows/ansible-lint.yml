@@ -17,7 +17,11 @@ jobs:
       - name: Install Ansible and Ansible-Lint via pip
         run: |
           python -m pip install --upgrade pip
-          pip install ansible ansible-lint community.general
+          pip install ansible ansible-lint
+
+      - name: Install community.general collection
+        run: |
+          ansible-galaxy collection install community.general
 
       - name: Run Ansible Lint
         run: |
