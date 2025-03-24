@@ -76,7 +76,7 @@
     state: restarted
 
 - name: Run Lynis Vulnerability Audit
-  ansible.builtin.shell: lynis audit system --quiet
+  ansible.builtin.command: lynis audit system --quiet
   register: lynis_output
   changed_when: false
 
